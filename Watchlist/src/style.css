@@ -1,0 +1,256 @@
+:root {
+  --primary-color: #ff6f61; /* Vibrant red-orange */
+  --secondary-color: #1c1c1c; /* Dark background */
+  --accent-color: #ffd700; /* Golden yellow */
+  --text-color: #ffffff; /* White text */
+  --muted-text-color: #b0b0b0; /* Muted text */
+  --border-radius: 10px;
+  --transition-speed: 0.3s;
+  --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  --sidebar-width: 250px;
+  --footer-bg-color: #1a1a1a;
+
+  font-family: 'Poppins', sans-serif;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+}
+
+#app {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.sidebar {
+  background-color: #2a2a2a;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sidebar h2 {
+  color: var(--accent-color);
+  margin-bottom: 1rem;
+}
+
+.sidebar-nav {
+  list-style: none;
+  padding: 0;
+  width: 100%;
+}
+
+.sidebar-nav li {
+  margin: 1rem 0;
+}
+
+.sidebar-nav a {
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: bold;
+  display: block;
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+  transition: background-color var(--transition-speed);
+}
+
+.sidebar-nav a:hover {
+  background-color: var(--primary-color);
+}
+
+header .hero {
+  text-align: center;
+  padding: 3rem;
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  color: var(--text-color);
+  border-radius: var(--border-radius);
+  margin: 1rem;
+  box-shadow: var(--box-shadow);
+}
+
+header .hero h1 {
+  font-size: 2.5rem;
+  margin: 0;
+}
+
+header .hero .tagline {
+  font-size: 1.2rem;
+  margin: 1rem 0;
+}
+
+.search-bar {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.search-bar input {
+  width: 60%;
+  padding: 0.8rem;
+  border: 1px solid var(--muted-text-color);
+  border-radius: var(--border-radius);
+  background-color: #2a2a3b;
+  color: var(--text-color);
+}
+
+search-bar button {
+  padding: 0.8rem 1.5rem;
+  background-color: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  margin-left: 0.5rem;
+}
+
+.carousel {
+  display: flex;
+  overflow-x: auto;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.carousel-item {
+  flex: 0 0 auto;
+  width: 200px;
+  text-align: center;
+}
+
+.carousel-item img {
+  width: 200px; /* Set a fixed width */
+  height: 300px; /* Set a fixed height */
+  object-fit: cover; /* Ensure the image scales properly */
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.placeholder {
+  background-color: #2a2a3b;
+  color: var(--muted-text-color);
+  text-align: center;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  margin: 1rem 0;
+  font-style: italic;
+  box-shadow: var(--box-shadow);
+}
+
+footer {
+  background-color: var(--footer-bg-color);
+  padding: 2rem;
+  text-align: center;
+  color: var(--muted-text-color);
+  border-top: 1px solid #333;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.footer-logo {
+  width: 100px;
+  height: auto;
+}
+
+.footer-tagline {
+  font-size: 1rem;
+  color: var(--text-color);
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  #app {
+    grid-template-columns: 1fr; /* Collapse sidebar */
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    z-index: 1000;
+    background-color: var(--secondary-color);
+    border-bottom: 1px solid #333;
+  }
+
+  .sidebar h2 {
+    text-align: center;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+  }
+
+  .hero {
+    padding: 2rem;
+    margin: 1rem 0;
+  }
+
+  .hero h1 {
+    font-size: 2rem;
+  }
+
+  .search-bar input {
+    width: 80%;
+  }
+
+  .carousel {
+    gap: 0.5rem;
+  }
+
+  .carousel-item {
+    width: 150px; /* Adjust width for smaller screens */
+  }
+
+  .carousel-item img {
+    width: 100px;
+    height: 100px; /* Maintain aspect ratio */
+  }
+
+  footer {
+    padding: 1rem;
+  }
+
+  .footer-logo {
+    width: 80px; /* Adjust logo size */
+  }
+
+  .footer-tagline {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 1.8rem;
+  }
+
+  .search-bar input {
+    width: 100%;
+  }
+
+  .carousel-item {
+    width: 120px; /* Further adjust for smaller screens */
+  }
+
+  .carousel-item img {
+    width: 120px;
+    height: 180px;
+  }
+
+  .footer-tagline {
+    font-size: 0.8rem;
+  }
+}

@@ -2,3 +2,15 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+[[redirects]]
+  from = "/search"
+  to = "/result.html"
+  status = 200
+  query = { preserve = true }
+
+[[redirects]]
+  from = "/movie/:id"
+  to = "/detail.html"
+  status = 200
+  query = { preserve = true }

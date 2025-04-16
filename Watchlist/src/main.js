@@ -1,100 +1,177 @@
-import './style.css'
-import javascriptLogo from './javascript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.js'
-
-document.querySelector('main.js').innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
-    </a>
-    <h1>Hello Vite!</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite logo to learn more
-    </p>
-    <div id="trending-section">
-      <h2>Trending Movies</h2>
-      <div class="placeholder"></div>
-    </div>
-    <div id="latest-section">
-      <h2>Latest Movies</h2>
-      <div class="placeholder"></div>
-    </div>
-    <div>
-      <input id="item-input" type="text" placeholder="Search for movies..." />
-      <button id="search-button">Search</button>
-      <ul id="results-list"></ul>
-    </div>
-    <div>
-      <h2>Watchlist</h2>
-      <ul id="watchlist"></ul>
-    </div>
-  </div>
-`
-
-setupCounter(document.querySelector('#counter'))
+import './style.css';
 
 // DOM Elements
 const searchInput = document.getElementById('item-input');
-const searchButton = document.getElementById('search-button');
+const searchButton = document.getElementById('new-search-button'); // Updated button ID
 const resultsList = document.getElementById('results-list');
+const searchResults = document.getElementById('results-list');
 const watchlist = document.getElementById('watchlist');
-const trendingSection = document.querySelector('#trending-section .placeholder');
-const latestSection = document.querySelector('#latest-section .placeholder');
+const trendingSection = document.querySelector('#trending-section .movie-grid');
+const latestSection = document.querySelector('#latest-section .movie-grid');
 
-// Sample data for trending and latest movies
-const trendingMovies = ['Ghost Writer', 'King Horror', 'Hercules'];
-const latestMovies = ['The New Dawn', 'Mystic River', 'Shadow Realm'];
+// OMDB API Base URL
+const API_URL = 'https://www.omdbapi.com/?apikey=465bcc93';
 
-// Function to display trending movies
-function displayTrendingMovies() {
-  trendingSection.innerHTML = trendingMovies
-    .map(movie => `<div class="movie-item">${movie}</div>`)
-    .join('');
+// Function to fetch movies from the API
+async function fetchMovies(query) {
+  try {
+    const response = await fetch(`${API_URL}&s=${encodeURIComponent(query)}`);
+    const data = await response.json();
+    if (data.Response === 'True') {
+      return data.Search; // Return the array of movies
+    } else {
+      console.error('No movies found:', data.Error);
+      return [];
+    }
+  } catch (error) {
+    console.error('Error fetching movies:', error);
+    return [];
+  }
 }
 
-// Function to display latest movies
-function displayLatestMovies() {
-  latestSection.innerHTML = latestMovies
-    .map(movie => `<div class="movie-item">${movie}</div>`)
-    .join('');
-}
-
-// Function to handle search
-function handleSearch() {
+// Function to display search results
+async function handleSearch() {
   const query = searchInput.value.trim();
-  if (query) {
-    resultsList.innerHTML = `<li>Searching for "${query}"...</li>`;
-    // Simulate search results
-    setTimeout(() => {
-      resultsList.innerHTML = `
-        <li>${query} - Result 1</li>
-        <li>${query} - Result 2</li>
-        <li>${query} - Result 3</li>
-        <button onclick="addToWatchlist('${query} - Result 1')">Add to Watchlist</button>
-      `;
-    }, 1000);
-  } else {
-    resultsList.innerHTML = '<li>Please enter a search term.</li>';
+  if (!query) {
+    alert('Please enter a search term.');
+    return;
+  }
+
+  resultsList.innerHTML = '<li>Loading...</li>'; // Show loading message
+  try {
+    const movies = await fetchMovies(query); // Fetch movies from the API
+
+    if (movies.length > 0) {
+      resultsList.innerHTML = ''; // Clear previous results
+      movies.forEach((movie) => {
+        const li = document.createElement('li');
+        li.classList.add('search-result-item');
+        li.innerHTML = `
+          <div class="movie-item">
+            <img src="${movie.Poster !== 'N/A' ? movie.Poster : '/images/placeholder.png'}" alt="${movie.Title}" />
+            <div class="details">
+              <h3>${movie.Title}</h3>
+              <p class="rating">⭐ ${movie.Year}</p>
+            </div>
+            <button class="add-to-watchlist">Add to Watchlist</button>
+          </div>
+        `;
+        li.querySelector('.add-to-watchlist').addEventListener('click', () => addToWatchlist(movie));
+        resultsList.appendChild(li);
+      });
+    } else {
+      resultsList.innerHTML = `<li>No movies found for "${query}".</li>`;
+    }
+  } catch (error) {
+    console.error('Error fetching search results:', error);
+    resultsList.innerHTML = '<li>Failed to fetch search results. Please try again later.</li>';
   }
 }
 
 // Function to add a movie to the watchlist
 function addToWatchlist(movie) {
-  const listItem = document.createElement('li');
-  listItem.textContent = movie;
-  watchlist.appendChild(listItem);
+  const watchlistItems = JSON.parse(localStorage.getItem('watchlist')) || [];
+  if (watchlistItems.some((item) => item.imdbID === movie.imdbID)) {
+    alert('This movie is already in your watchlist.');
+    return;
+  }
+
+  watchlistItems.push(movie);
+  localStorage.setItem('watchlist', JSON.stringify(watchlistItems));
+  renderWatchlist();
+}
+
+// Function to render the watchlist
+function renderWatchlist() {
+  const watchlistItems = JSON.parse(localStorage.getItem('watchlist')) || [];
+  watchlist.innerHTML = watchlistItems
+    .map(
+      (movie) => `
+      <li class="watchlist-item">
+        <span>${movie.Title} (${movie.Year})</span>
+        <button class="remove-from-watchlist" data-id="${movie.imdbID}">Remove</button>
+      </li>`
+    )
+    .join('');
+
+  // Add event listeners to remove buttons
+  document.querySelectorAll('.remove-from-watchlist').forEach((button) => {
+    button.addEventListener('click', (event) => {
+      const imdbID = event.target.getAttribute('data-id');
+      removeFromWatchlist(imdbID);
+    });
+  });
+}
+
+// Function to remove a movie from the watchlist
+function removeFromWatchlist(imdbID) {
+  const watchlistItems = JSON.parse(localStorage.getItem('watchlist')) || [];
+  const updatedWatchlist = watchlistItems.filter((movie) => movie.imdbID !== imdbID);
+  localStorage.setItem('watchlist', JSON.stringify(updatedWatchlist));
+  renderWatchlist();
+}
+
+// Function to display trending movies
+async function displayTrendingMovies() {
+  const movies = await fetchMovies('Avengers'); // Replace 'Avengers' with a valid search term
+  if (movies.length > 0) {
+    trendingSection.innerHTML = movies
+      .map(
+        (movie) => `
+        <div class="movie-item">
+          <img src="${movie.Poster !== 'N/A' ? movie.Poster : '/images/placeholder.png'}" alt="${movie.Title}" />
+          <div class="details">
+            <h3>${movie.Title}</h3>
+            <p class="rating">⭐ ${movie.Year}</p>
+          </div>
+        </div>`
+      )
+      .join('');
+  } else {
+    trendingSection.innerHTML = '<div>No trending movies available.</div>';
+  }
+}
+
+// Function to display latest movies
+async function displayLatestMovies() {
+  const movies = await fetchMovies('Batman'); // Replace 'Batman' with a valid search term
+  if (movies.length > 0) {
+    latestSection.innerHTML = movies
+      .map(
+        (movie) => `
+        <div class="movie-item">
+          <img src="${movie.Poster !== 'N/A' ? movie.Poster : '/images/placeholder.png'}" alt="${movie.Title}" />
+          <div class="details">
+            <h3>${movie.Title}</h3>
+            <p class="rating">⭐ ${movie.Year}</p>
+          </div>
+        </div>`
+      )
+      .join('');
+  } else {
+    latestSection.innerHTML = '<div>No latest movies available.</div>';
+  }
+}
+
+// Function to handle search and redirect to results page
+function handleSearchRedirect() {
+  const query = searchInput.value.trim();
+  if (!query) {
+    alert('Please enter a search term.');
+    return;
+  }
+  window.location.href = `/results.html?query=${encodeURIComponent(query)}`;
 }
 
 // Event Listeners
-searchButton.addEventListener('click', handleSearch);
+searchButton.addEventListener('click', handleSearchRedirect);
 
 // Initialize placeholders
 displayTrendingMovies();
 displayLatestMovies();
+
+// Initialize watchlist on page load
+document.addEventListener('DOMContentLoaded', () => {
+  renderWatchlist();
+});
+
